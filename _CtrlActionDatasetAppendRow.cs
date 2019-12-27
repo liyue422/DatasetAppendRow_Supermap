@@ -12,8 +12,8 @@ namespace SuperMap.Desktop.DatasetAppendRow
 {
     class _CtrlActionDatasetAppendRow:CtrlAction 
     {  
-        public _CtrlActionDatasetAppendRow(IBaseItem caller,IForm formclass)
-            :base (caller,formclass)
+        public _CtrlActionDatasetAppendRow(IBaseItem caller)
+            :base (caller)
         {
         
         }
