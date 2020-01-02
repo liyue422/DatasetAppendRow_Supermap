@@ -20,9 +20,9 @@ namespace SuperMap.Desktop.DatasetAppendRow
             InitializeComponent();
         }
 
-        private void cmbDatasource_Click(object sender, EventArgs e)
+        // 初始化数据源组合框,将现有数据源添加到下拉框中
+        private void InitCmbDS(ComboBox cmb)
         {
-            //当数据源组合框下拉操作时，选择目标数据所在的数据源
             try
             {
                 //首先获取当前窗体的工作空间对象
@@ -37,216 +37,146 @@ namespace SuperMap.Desktop.DatasetAppendRow
                 else
                 {//添加数据源
 
-                    cmbDatasource.Items.Clear();
-                    cmbDatasource.BeginUpdate();
+                    cmb.Items.Clear();
+                    cmb.BeginUpdate();
                     for (int i = 0; i < DsCount; i++)
                     {
                         //定义数据源对象
-                        cmbDatasource.Items.Add(objDss[i].Alias);
+                        cmb.Items.Add(objDss[i].Alias);
                     }
-                    cmbDatasource.EndUpdate();
-                    cmbDatasource.SelectedIndex = 0;
+                    cmb.EndUpdate();
+                  //  cmb.SelectedIndex = 0;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Application.ActiveApplication.Output.Output(ex.StackTrace);
+            } 
+        }
+
+
+        //初始化数据集组合框，以便在combobox中选择指定数据源的点、线、面、属性表等矢量数据集
+        private void InitCmbB(ComboBox DataSource, ComboBox DataSet)
+        {
+            try
+            {
+                //首先获取当前窗体的工作空间对象
+
+                Workspace Wkspace = Application.ActiveApplication.Workspace;
+                Datasources objDss = Wkspace.Datasources;
+
+                int DtvCount = 0;
+                //获取当前的数据源对象
+                string DsName = DataSource.Text;
+                if (DsName == "")
+                {
+                    return;
+                }
+                Datasource objDs = objDss[DsName];//
+                if (objDs != null)
+                {
+                    //获取当前数据源中的数据集
+                    Datasets objDts = objDs.Datasets;
+                    int DtCount = objDts.Count;
+                    if (DtCount == 0)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        //添加数据集
+
+                        DataSet.Items.Clear();
+                        DataSet.BeginUpdate();
+                        for (int i = 0; i < DtCount; i++)
+                        {
+                            //定义数据源对象
+
+                            Dataset objDt = objDts[i];
+                            if (objDt.Type == DatasetType.Point || objDt.Type == DatasetType.Line || objDt.Type == DatasetType.Region ||
+                                objDt.Type == DatasetType.CAD || objDt.Type == DatasetType.LineM ||objDt.Type == DatasetType.LinkTable || 
+                                objDt.Type == DatasetType.Network || objDt.Type == DatasetType.Topology || objDt.Type == DatasetType.Model)
+                            {
+                                string DtName = objDt.Name;
+                                DataSet.Items.Add(DtName);
+                                DtvCount++;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+
+                        }
+                        DataSet.EndUpdate();
+                    }
+                }
+                else
+                {
+                    DataSet.Items.Clear();
                 }
             }
             catch (System.Exception ex)
             {
                 Application.ActiveApplication.Output.Output(ex.StackTrace);
             }
+        }
+
+
+        // 初始化属性字段组合框,将指定数据集中的属性字段添加到下拉框中
+        private void InitCmbF(ComboBox DataSource, ComboBox DataSet,ComboBox Field)
+        {
+            try
+            {
+                Workspace Wkspace = Application.ActiveApplication.Workspace;
+                Datasources objDss = Wkspace.Datasources;
+
+                DatasetVector datasetAdd = objDss[DataSource.Text].Datasets[DataSet.Text] as DatasetVector;
+
+                Field.Items.Clear();
+                Field.BeginUpdate();
+                for (int i = 0; i < datasetAdd.FieldCount; i++)
+                {
+                    Field.Items.Add(datasetAdd.FieldInfos[i].Name);
+                }
+                Field.EndUpdate();
+            }
+            catch (System.Exception ex)
+            {
+                Application.ActiveApplication.Output.Output(ex.StackTrace);
+            }
+        
+        }
+
+
+
+        private void cmbDatasource_Click(object sender, EventArgs e)
+        {
+            //当数据源组合框下拉操作时，选择目标数据所在的数据源
+            InitCmbDS(cmbDatasource);
         }
 
         private void cmbDataset_Click(object sender, EventArgs e)
         {
             //当数据源组合框下拉操作时，选择目标数据源下的数据集
-            try
-            {
-                //首先获取当前窗体的工作空间对象
-
-                Workspace Wkspace = Application.ActiveApplication.Workspace;
-                Datasources objDss = Wkspace.Datasources;
-
-                int DtvCount = 0;
-                //获取当前的数据源对象
-                string DsName = cmbDatasource.Text;
-                if (DsName == "")
-                {
-                    return;
-                }
-                Datasource objDs = objDss[DsName];//
-                if (objDs != null)
-                {
-                    //获取当前数据源中的数据集
-                    Datasets objDts = objDs.Datasets;
-                    int DtCount = objDts.Count;
-                    if (DtCount == 0)
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        //添加数据集
-
-                        cmbDataset.Items.Clear();
-                        cmbDataset.BeginUpdate();
-                        for (int i = 0; i < DtCount; i++)
-                        {
-                            //定义数据源对象
-
-                            Dataset objDt = objDts[i];
-                            if (objDt.Type == DatasetType.Point || objDt.Type == DatasetType.Line || objDt.Type == DatasetType.Region ||
-                                objDt.Type == DatasetType.Tabular || objDt.Type == DatasetType.CAD || objDt.Type == DatasetType.LineM ||
-                                objDt.Type == DatasetType.LinkTable || objDt.Type == DatasetType.Network || objDt.Type == DatasetType.Text ||
-                                objDt.Type == DatasetType.Topology || objDt.Type == DatasetType.Model)
-                            {
-                                string DtName = objDt.Name;
-                                cmbDataset.Items.Add(DtName);
-                                DtvCount++;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                        }
-                        cmbDataset.EndUpdate();
-                    }
-                }
-                else
-                {
-                    cmbDataset.Items.Clear();
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Application.ActiveApplication.Output.Output(ex.StackTrace);
-            }
+            InitCmbB(cmbDatasource, cmbDataset);
         }
 
         private void cmbDatasourceAdd_Click(object sender, EventArgs e)
         {
             //当数据源组合框下拉操作时，选择要进行追加的数据集所在的数据源
-            try
-            {
-                //首先获取当前窗体的工作空间对象
-                Workspace Wkspace = Application.ActiveApplication.Workspace;
-                Datasources objDss = Wkspace.Datasources;
-                int DsCount = objDss.Count;
-
-                if (DsCount == 0)
-                {
-                    return;
-                }
-                else
-                {//添加数据源
-
-                    cmbDatasourceAdd.Items.Clear();
-                    cmbDatasourceAdd.BeginUpdate();
-                    for (int i = 0; i < DsCount; i++)
-                    {
-                        //定义数据源对象
-                        cmbDatasourceAdd.Items.Add(objDss[i].Alias);
-                    }
-                    cmbDatasourceAdd.EndUpdate();
-                    cmbDatasourceAdd.SelectedIndex = 0;
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Application.ActiveApplication.Output.Output(ex.StackTrace);
-            }
-
+            InitCmbDS(cmbDatasourceAdd);
         }
 
         private void cmbDatasetAdd_Click(object sender, EventArgs e)
         {
             //当数据源组合框下拉操作时，选择要进行追加的数据集
-            try
-            {
-                //首先获取当前窗体的工作空间对象
-
-                Workspace Wkspace = Application.ActiveApplication.Workspace;
-                Datasources objDss = Wkspace.Datasources;
-
-                int DtvCount = 0;
-                //获取当前的数据源对象
-                string DsName = cmbDatasourceAdd.Text;
-                if (DsName == "")
-                {
-                    return;
-                }
-                Datasource objDs = objDss[DsName];//
-                if (objDs != null)
-                {
-                    //获取当前数据源中的数据集
-                    Datasets objDts = objDs.Datasets;
-                    int DtCount = objDts.Count;
-                    if (DtCount == 0)
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        //添加数据集
-
-                        cmbDatasetAdd.Items.Clear();
-                        cmbDatasetAdd.BeginUpdate();
-                        for (int i = 0; i < DtCount; i++)
-                        {
-                            //定义数据源对象
-
-                            Dataset objDt = objDts[i];
-                            if (objDt.Type == DatasetType.Point || objDt.Type == DatasetType.Line || objDt.Type == DatasetType.Region ||
-                                objDt.Type == DatasetType.Tabular || objDt.Type == DatasetType.CAD || objDt.Type == DatasetType.LineM ||
-                                objDt.Type == DatasetType.LinkTable || objDt.Type == DatasetType.Network || objDt.Type == DatasetType.Text ||
-                                objDt.Type == DatasetType.Topology || objDt.Type == DatasetType.Model)
-                            {
-                                string DtName = objDt.Name;
-                                cmbDatasetAdd.Items.Add(DtName);
-                                DtvCount++;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                        }
-                        cmbDatasetAdd.EndUpdate();
-                    }
-                }
-                else
-                {
-                    cmbDatasetAdd.Items.Clear();
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Application.ActiveApplication.Output.Output(ex.StackTrace);
-            }
+            InitCmbB(cmbDatasourceAdd, cmbDatasetAdd);          
         }
-
-        
 
         private void cmbField_Click(object sender, EventArgs e)
         {
             //获取要进行追加的数据集包含的字段，选择相应的楼层字段（楼层字段为数字形式，如1/2/3等，“F1”等不可）
-            try
-            {
-                Workspace Wkspace = Application.ActiveApplication.Workspace;
-                Datasources objDss = Wkspace.Datasources;
-
-                DatasetVector datasetAdd = objDss[cmbDatasourceAdd.Text].Datasets[cmbDatasetAdd.Text] as DatasetVector;
-
-                cmbField.Items.Clear();
-                cmbField.BeginUpdate();
-                for (int i = 0; i < datasetAdd.FieldCount; i++)
-                {
-                    cmbField.Items.Add(datasetAdd.FieldInfos[i].Name);
-                }
-                cmbField.EndUpdate();
-            }
-            catch (System.Exception ex)
-            {
-                Application.ActiveApplication.Output.Output(ex.StackTrace);
-            }
+            InitCmbF(cmbDatasourceAdd, cmbDatasetAdd, cmbField);
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
